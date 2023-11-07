@@ -1,0 +1,70 @@
+def print_puzzle(board):
+    for row in board:
+        print(" ".join(map(str, row)))
+
+def get_blank_position(board):
+    for i in range(3):
+        for j in range(3):
+            if board[i][j] == 0:
+                return i, j
+
+def get_neighbors(board):
+    i, j = get_blank_position(board)
+    neighbors = []
+    moves = [(0, 1), (1, 0), (0, -1), (-1, 0)]
+
+    for move in moves:
+        new_i, new_j = i + move[0], j + move[1]
+
+        if 0 <= new_i < 3 and 0 <= new_j < 3:
+            new_board = [row[:] for row in board]
+            new_board[i][j], new_board[new_i][new_j] = new_board[new_i][new_j], new_board[i][j]
+            neighbors.append(new_board)
+
+    return neighbors
+
+def heuristic(board):
+    h = 0
+    goal = [[1, 2, 3], [4, 5, 6], [7, 8, 0]]
+
+    for i in range(3):
+        for j in range(3):
+            if board[i][j] != goal[i][j] and board[i][j] != 0:
+                value = board[i][j]
+                goal_i, goal_j = divmod(value - 1, 3)
+                h += abs(i - goal_i) + abs(j - goal_j)
+    return h
+
+def a_star_search(initial_state):
+    open_set = [(heuristic(initial_state), 0, initial_state)]
+    closed_set = set()
+
+    while open_set:
+        open_set.sort()
+        _, g, current_state = open_set.pop(0)
+
+        if current_state == [[1, 2, 3], [4, 5, 6], [7, 8, 0]]:
+            return g
+
+        closed_set.add(tuple(map(tuple, current_state))
+                     )
+
+        for neighbor in get_neighbors(current_state):
+            if tuple(map(tuple, neighbor)) not in closed_set:
+                open_set.append((g + 1 + heuristic(neighbor), g + 1, neighbor))
+
+    return -1
+
+# Example initial state (change this to your desired initial state)
+initial_state = [
+    [2, 8, 3],
+    [1, 6, 4],
+    [7, 0, 5]
+]
+
+steps = a_star_search(initial_state)
+
+if steps >= 0:
+    print("Solution found in", steps, "moves.")
+else:
+    print("No solution found.")
